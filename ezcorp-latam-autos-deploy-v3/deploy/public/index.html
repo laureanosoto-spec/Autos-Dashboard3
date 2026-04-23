@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATAM · Autos · Financial Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--purple:#533AB7;--green:#1D9E75;
+  --blue-light:#E6F1FB;--purple-light:#F0ECFC;--green-light:#E8F5EE;
+  --card:#fff;--bg:#F2F2F0;--border:rgba(0,0,0,0.08);
+  --text:#1a1a1a;--muted:#888;--faint:#bbb;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh}
+
+/* HEADER */
+.header{
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:13px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.04)
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-icon{width:32px;height:32px;background:linear-gradient(135deg,#185FA5,#533AB7);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0}
+.header-title{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;letter-spacing:.01em}
+.tag-q1{background:var(--purple-light);color:var(--purple)}
+.tag-q2{background:var(--blue-light);color:var(--blue)}
+.tag-live{background:#EAF3DE;color:#2E5B0A;display:flex;align-items:center;gap:4px}
+.live-dot{width:6px;height:6px;background:#3B8A1E;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* FILTER BAR */
+.filterbar{
+  background:#FAFAFA;border-bottom:1px solid var(--border);
+  padding:9px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end
+}
+.fg{display:flex;flex-direction:column;gap:2px}
+.fg label{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.fg select{
+  font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid #ddd;
+  background:#fff;color:#111;cursor:pointer;max-width:150px;
+  font-family:'DM Sans',sans-serif;
+  transition:border-color .15s;
+}
+.fg select:hover{border-color:#aaa}
+.fg select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,95,165,.1)}
+.fg select:disabled{background:#f5f5f5;color:#aaa;cursor:not-allowed}
+.reset-btn{
+  padding:5px 13px;font-size:11px;border-radius:6px;border:1px solid #ddd;
+  background:#fff;cursor:pointer;color:#555;font-family:'DM Sans',sans-serif;font-weight:500;
+  transition:all .15s;align-self:flex-end
+}
+.reset-btn:hover{background:#f0f0f0;border-color:#bbb}
+
+/* TABS */
+.tabs{
+  display:flex;background:#fff;border-bottom:2px solid var(--border);
+  padding:0 20px;overflow-x:auto;gap:2px
+}
+.tab{
+  padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap;
+  flex-shrink:0;margin-bottom:-2px;transition:all .15s;letter-spacing:.01em
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* PAGES */
+.page{display:none;padding:16px 20px}.page.active{display:block}
+
+/* QUARTER STRIP */
+.q-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.q-card{
+  background:var(--card);border-radius:10px;padding:14px 15px;
+  border:1px solid var(--border);position:relative;overflow:hidden
+}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+.q1-accent::before{background:var(--purple)}
+.q2-accent::before{background:var(--blue)}
+.ytd-accent::before{background:var(--green)}
+.q-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;opacity:.8}
+.q-val{font-size:19px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.q-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.q-meta{font-size:10px;color:var(--faint);margin-top:5px;line-height:1.5}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;margin-bottom:14px}
+.kc{
+  background:var(--card);border-radius:10px;padding:12px 14px;
+  border:1px solid var(--border);transition:box-shadow .15s
+}
+.kc:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.kc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;font-weight:700}
+.kc-val{font-size:19px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-.02em}
+.kc-sub{font-size:10px;color:var(--faint);margin-top:3px}
+.kc-badge{
+  display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:4px;margin-top:5px;letter-spacing:.01em
+}
+.up{background:#EAF3DE;color:#2E5B0A}.dn{background:#FCEAEA;color:#8B1A1A}
+
+/* CHARTS */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.chart-box{
+  background:var(--card);border-radius:10px;border:1px solid var(--border);
+  padding:14px;overflow:hidden
+}
+.chart-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
+
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bar-lbl{font-size:10px;color:var(--muted);width:30px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.bar-track{flex:1;background:#F0F0EE;border-radius:4px;height:16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:700;color:#fff;min-width:3px;transition:width .3s ease}
+.bar-val{font-size:10px;color:#555;width:55px;flex-shrink:0;text-align:right;font-family:'DM Mono',monospace}
+.q-divider{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--faint);letter-spacing:.06em;margin:7px 0 4px;padding-left:38px}
+
+/* MATRIX */
+.matrix-wrap{background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:auto;margin-bottom:14px}
+.sec-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#F6F6F6;position:sticky;top:0;z-index:2}
+th{padding:8px 10px;font-size:9px;font-weight:700;color:#555;text-align:right;border-bottom:1px solid #EBEBEB;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+th.left{text-align:left}
+th.q1h{background:#F2EDFD;color:var(--purple)}
+th.q2h{background:#EAF1FB;color:var(--blue)}
+th.toth{background:#EBF6F1;color:var(--green)}
+td{padding:6px 10px;font-size:11px;border-bottom:1px solid #F4F4F4;text-align:right;white-space:nowrap;font-family:'DM Mono',monospace}
+td.kpi-name{text-align:left;font-weight:500;color:var(--text);font-size:11px;padding-left:20px;font-family:'DM Sans',sans-serif}
+td.grp{
+  background:#F8F8F8;font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:#555;padding:8px 10px;text-align:left;font-family:'DM Sans',sans-serif
+}
+td.q1c{background:#FDFBFF}
+td.totc{background:#F5FAF7;font-weight:600}
+td.plan{color:#C8C8C8}
+.pup{color:#2E5B0A;font-weight:600}.pdn{color:#8B1A1A;font-weight:600}
+
+/* TRENDS */
+.spark-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.spark-card{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:12px 14px;transition:box-shadow .15s}
+.spark-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.spark-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.spark-val{font-size:16px;font-weight:700;margin-top:3px;letter-spacing:-.02em}
+.spark-chg{font-size:10px;margin-top:2px;font-weight:600}
+.spark-bars{display:flex;align-items:flex-end;gap:2px;height:32px;margin-top:10px}
+.spark-b{flex:1;border-radius:2px 2px 0 0;min-height:2px;transition:height .3s}
+.spark-mo{display:flex;justify-content:space-between;margin-top:3px}
+.spark-mo span{font-size:9px;color:var(--faint)}
+
+/* DIVISION */
+.div-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.div-card{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:14px}
+.div-title{font-size:12px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #F0F0F0;letter-spacing:-.01em}
+.div-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid #F8F8F8}
+.div-row:last-child{border-bottom:none}
+.div-row span:first-child{color:var(--muted)}
+.div-row span:last-child{font-weight:600;font-family:'DM Mono',monospace}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:12px}
+
+@media(max-width:580px){
+  .chart-row,.div-grid,.spark-grid,.q-strip{grid-template-columns:1fr}
+  .header{padding:10px 14px}
+  .filterbar{padding:8px 14px}
+  .page{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">MX</div>
+    <div>
+      <div class="header-title">LATAM · Autos · Financial Tracker</div>
+      <div class="header-sub" id="headerSub">Enterprise Workspace &nbsp;·&nbsp; FY2026 &nbsp;·&nbsp; Data through April 21, 2026</div>
+    </div>
+  </div>
+  <div class="tags">
+    <span class="tag tag-q1">Q1: Oct–Dec 2025</span>
+    <span class="tag tag-q2">Q2: Jan–Mar 2026</span>
+    <span class="tag tag-live"><span class="live-dot"></span>Live from PBI</span>
+  </div>
+</div>
+
+<div class="filterbar">
+  <div class="fg"><label>Country</label>
+    <select id="fCountry" onchange="switchCountry()">
+      <option value="MEXICO">MEXICO</option>
+      <option value="GUATEMALA">GUATEMALA</option>
+    </select>
+  </div>
+  <div class="fg"><label>Hierarchy</label><select disabled><option>Autos</option></select></div>
+  <div class="fg"><label>Division</label>
+    <select id="fDiv" onchange="cascade()">
+      <option value="">All Divisions</option>
+      <option>Division 1</option>
+      <option>Division 2</option>
+    </select>
+  </div>
+  <div class="fg"><label>Region (RDO)</label><select id="fReg" onchange="cascade()"><option value="">All Regions</option></select></div>
+  <div class="fg"><label>District</label><select id="fDist" onchange="cascade()"><option value="">All Districts</option></select></div>
+  <div class="fg"><label>DM</label><select id="fDM" onchange="render()"><option value="">All DMs</option></select></div>
+  <div class="fg"><label>Brand</label><select id="fBrand" onchange="render()"><option value="">All Brands</option></select></div>
+  <div class="fg"><label>Year</label>
+    <select id="fYear" onchange="cascadeDate()">
+      <option value="">All Years</option>
+    </select>
+  </div>
+  <div class="fg"><label>Quarter</label>
+    <select id="fQ" onchange="cascadeDate()">
+      <option value="">All Quarters</option>
+    </select>
+  </div>
+  <div class="fg"><label>Month</label>
+    <select id="fMonth" onchange="render()">
+      <option value="">All Months</option>
+    </select>
+  </div>
+  <button class="reset-btn" onclick="resetFilters()">↺ Reset</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview',this)">Overview</div>
+  <div class="tab" onclick="showTab('matrix',this)">KPI Matrix</div>
+  <div class="tab" onclick="showTab('trends',this)">Trends</div>
+  <div class="tab" onclick="showTab('division',this)">By Division</div>
+</div>
+
+<div id="overview" class="page active"></div>
+<div id="matrix" class="page"></div>
+<div id="trends" class="page"></div>
+<div id="division" class="page"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const MONTHLY=[
+  {m:10,yr:2025,mn:"October", q:"Q1",plo:2242891626,ploPlan:15146459693,ploVsP:-0.8519,ploVsLY:29.97,psc:5655575,pscPlan:null,pscVsP:null,pscVsLY:2.102,sales:3611259,salesPlan:null,salesVsP:null,salesVsLY:0.702,cogs:2768842,sgp:842416,netRev:6497991,netRevPlan:null,netRevVsP:null,nlmN:654,nlmD:16078706,stores:648,delta:2970278,deltaPlan:null,pbo:67080792},
+  {m:11,yr:2025,mn:"November",q:"Q1",plo:2349678086,ploPlan:18524972204,ploVsP:-0.8732,ploVsLY:26.78,psc:6130996,pscPlan:null,pscVsP:null,pscVsLY:2.434,sales:4068912,salesPlan:null,salesVsP:null,salesVsLY:0.410,cogs:2896219,sgp:1172693,netRev:7303546,netRevPlan:null,netRevVsP:null,nlmN:525,nlmD:15135796,stores:648,delta:-1462222,deltaPlan:null,pbo:65728067},
+  {m:12,yr:2025,mn:"December",q:"Q1",plo:2245519277,ploPlan:8465192359,ploVsP:-0.7347,ploVsLY:27.32,psc:6539758,pscPlan:null,pscVsP:null,pscVsLY:2.172,sales:5769206,salesPlan:null,salesVsP:null,salesVsLY:1.371,cogs:4468484,sgp:1300722,netRev:7840511,netRevPlan:null,netRevVsP:null,nlmN:523,nlmD:13558530,stores:648,delta:-7314494,deltaPlan:null,pbo:58466205},
+  {m:1, yr:2026,mn:"January", q:"Q2",plo:1942590634,ploPlan:14726765700,ploVsP:-0.8681,ploVsLY:27.38,psc:5565883,pscPlan:null,pscVsP:null,pscVsLY:2.305,sales:6700420,salesPlan:null,salesVsP:null,salesVsLY:1.838,cogs:5252151,sgp:1448269,netRev:7023324,netRevPlan:null,netRevVsP:null,nlmN:529,nlmD:11219815,stores:648,delta:-7481963,deltaPlan:null,pbo:51294042},
+  {m:2, yr:2026,mn:"February",q:"Q2",plo:1688910827,ploPlan:12930355821,ploVsP:-0.8694,ploVsLY:18.86,psc:4627825,pscPlan:2656811,pscVsP:1.742,pscVsLY:1.787,sales:4296813,salesPlan:2631686,salesVsP:1.633,salesVsLY:0.808,cogs:3346587,sgp:950227,netRev:5588334,netRevPlan:3524741,netRevVsP:1.585,nlmN:533,nlmD:14676959,stores:648,delta:1092806,deltaPlan:2497723,pbo:52486647},
+  {m:3, yr:2026,mn:"March",   q:"Q2",plo:1959094608,ploPlan:10055859317,ploVsP:-0.8052,ploVsLY:22.62,psc:5460914,pscPlan:2816777,pscVsP:1.939,pscVsLY:1.888,sales:3655381,salesPlan:2961746,salesVsP:1.234,salesVsLY:0.404,cogs:2834613,sgp:820768,netRev:6291476,netRevPlan:3793860,netRevVsP:1.658,nlmN:636,nlmD:16863593,stores:648,delta:2733898,deltaPlan:-1578747,pbo:55217045},
+  {m:4, yr:2026,mn:"April",   q:"Q3",plo:1132004076,ploPlan:null,ploVsP:null,ploVsLY:null,psc:3336596,pscPlan:3174344,pscVsP:1.051,pscVsLY:null,sales:2383687,salesPlan:1413044,salesVsP:1.687,salesVsLY:null,cogs:1591890,sgp:791798,netRev:4135070,netRevPlan:3626517,netRevVsP:1.140,nlmN:426,nlmD:8471333,stores:650,delta:-467702,deltaPlan:-923898,pbo:54746544},
+];
+
+const DIV_DATA=[
+  {m:10,yr:2025,mn:"October", q:"Q1",div:"Division 1",plo:812880124, psc:2211546,sales:1259838,netRev:2552131,nlmN:277,delta:-877838,  stores:321},
+  {m:10,yr:2025,mn:"October", q:"Q1",div:"Division 2",plo:1430011502,psc:3444030,sales:2351420,netRev:3945860,nlmN:377,delta:3848116,  stores:327},
+  {m:11,yr:2025,mn:"November",q:"Q1",div:"Division 1",plo:811922460, psc:2169868,sales:2164777,netRev:2739283,nlmN:217,delta:-2827795, stores:321},
+  {m:11,yr:2025,mn:"November",q:"Q1",div:"Division 2",plo:1537755627,psc:3961127,sales:1904135,netRev:4564263,nlmN:308,delta:1365573,  stores:327},
+  {m:12,yr:2025,mn:"December",q:"Q1",div:"Division 1",plo:782188244, psc:2370522,sales:2685433,netRev:2986495,nlmN:218,delta:967522,   stores:321},
+  {m:12,yr:2025,mn:"December",q:"Q1",div:"Division 2",plo:1463331033,psc:4169236,sales:3083773,netRev:4854016,nlmN:305,delta:-8282016, stores:327},
+  {m:1, yr:2026,mn:"January", q:"Q2",div:"Division 1",plo:714116307, psc:1955731,sales:2346992,netRev:2455169,nlmN:224,delta:-4720043, stores:321},
+  {m:1, yr:2026,mn:"January", q:"Q2",div:"Division 2",plo:1228474327,psc:3610151,sales:4353429,netRev:4568155,nlmN:305,delta:-2761920, stores:327},
+  {m:2, yr:2026,mn:"February",q:"Q2",div:"Division 1",plo:541263658, psc:1625015,sales:1507722,netRev:2009492,nlmN:246,delta:790946,   stores:321},
+  {m:2, yr:2026,mn:"February",q:"Q2",div:"Division 2",plo:1147647168,psc:3002810,sales:2789092,netRev:3578842,nlmN:287,delta:301860,   stores:327},
+  {m:3, yr:2026,mn:"March",   q:"Q2",div:"Division 1",plo:666083288, psc:1896643,sales:1775672,netRev:2192432,nlmN:277,delta:1123239,  stores:321},
+  {m:3, yr:2026,mn:"March",   q:"Q2",div:"Division 2",plo:1293011320,psc:3564271,sales:1879710,netRev:4099044,nlmN:359,delta:1610659,  stores:327},
+  {m:4, yr:2026,mn:"April",   q:"Q3",div:"Division 1",plo:401349380, psc:1208714,sales:958581, netRev:1521913,nlmN:193,delta:492881,   stores:322},
+  {m:4, yr:2026,mn:"April",   q:"Q3",div:"Division 2",plo:730654696, psc:2127882,sales:1425106,netRev:2613157,nlmN:233,delta:-960582,  stores:328},
+];
+
+
+const GT_MONTHLY=[
+  {m:10,yr:2025,mn:"October", q:"Q1",plo:52295,  ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:2000},
+  {m:11,yr:2025,mn:"November",q:"Q1",plo:87945,  ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:3950},
+  {m:12,yr:2025,mn:"December",q:"Q1",plo:121173, ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:3500},
+  {m:1, yr:2026,mn:"January", q:"Q2",plo:114100,  ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:2500},
+  {m:2, yr:2026,mn:"February",q:"Q2",plo:47000,   ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:2700},
+  {m:3, yr:2026,mn:"March",   q:"Q2",plo:142900,  ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:7100},
+  {m:4, yr:2026,mn:"April",   q:"Q3",plo:285686,  ploPlan:null,ploVsP:null,ploVsLY:null,psc:null,pscPlan:null,pscVsP:null,pscVsLY:null,sales:null,salesPlan:null,salesVsP:null,salesVsLY:null,cogs:null,sgp:null,netRev:null,netRevPlan:null,netRevVsP:null,nlmN:null,nlmD:null,stores:157,delta:null,deltaPlan:null,pbo:16197},
+];
+
+const GT_HIER=[
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU2", dm:"edin.gonzalez",      brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU3", dm:"wendy.mejia",        brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU4", dm:"mynor.armas",        brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU8", dm:"edson.rodas",        brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU13",dm:"elmer.yol",          brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"CENTRAL",      dist:"District GU15",dm:"flordemaria.perez",  brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"NOR-ORIENTE",  dist:"District GU1", dm:"claudia.rangel",     brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"NOR-ORIENTE",  dist:"District GU5", dm:"maria.martinez",     brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"NOR-ORIENTE",  dist:"District GU6", dm:"javier.juarez",      brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"NOR-ORIENTE",  dist:"District GU7", dm:"marisol.acevedo",    brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"NOR-ORIENTE",  dist:"District GU16",dm:"geovanni.villagran", brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"SUR-OCCIDENTE",dist:"District GU9", dm:"ramiro.valdez",      brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"SUR-OCCIDENTE",dist:"District GU10",dm:"gabriela.paz",       brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"SUR-OCCIDENTE",dist:"District GU11",dm:"welvin.reyna",       brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"SUR-OCCIDENTE",dist:"District GU12",dm:"juan.perezp",        brand:"Guateprenda"},
+  {div:"GPMX Division",reg:"SUR-OCCIDENTE",dist:"District GU14",dm:"ofelia.lopez",       brand:"Guateprenda"},
+];
+
+const HIER=[
+  {div:"Division 1",reg:"Centro 1",dist:"Mexico 12",dm:"fpaulin",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 1",dist:"Mexico 13",dm:"evalle",brand:"MP"},
+  {div:"Division 1",reg:"Centro 1",dist:"Mexico 2",dm:"jmartinezv",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 1",dist:"Mexico 3",dm:"adiaz",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 1",dist:"Mexico 9",dm:"respinoza",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 2",dist:"Pacifico 1",dm:"saul.ortiz",brand:"MP"},
+  {div:"Division 1",reg:"Centro 2",dist:"Guerrero",dm:"khernandez",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 2",dist:"Mexico 1",dm:"mrodriguezz",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 2",dist:"Mexico 23",dm:"azamora",brand:"SP (San Patricio)"},
+  {div:"Division 1",reg:"Centro 2",dist:"Morelos",dm:"dmontes",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 2",dist:"Morelos 2",dm:"jantunez",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 3",dist:"Hidalgo",dm:"jlozada",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 3",dist:"Hidalgo 2",dm:"jlopezg",brand:"MNA"},
+  {div:"Division 1",reg:"Centro 3",dist:"Mexico 25",dm:"almartinez1",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 3",dist:"Mexico 5",dm:"mleyte",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 3",dist:"Mexico 8",dm:"lvaldez",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 4",dist:"Mexico 11",dm:"ijuarezm",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 4",dist:"Mexico 21",dm:"mespinoza",brand:"SP (San Patricio)"},
+  {div:"Division 1",reg:"Centro 4",dist:"Mexico 22",dm:"cgomezg",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 4",dist:"Mexico 4",dm:"gvalencia",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 5",dist:"Metro 1 MP",dm:"jorge.rodriguez1",brand:"MP"},
+  {div:"Division 1",reg:"Centro 5",dist:"Mexico 10",dm:"mhernandezv",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 5",dist:"Mexico 20",dm:"agomez",brand:"SP (San Patricio)"},
+  {div:"Division 1",reg:"Centro 5",dist:"Mexico 27",dm:"jjasso",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 5",dist:"Mexico 6",dm:"iirepan",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Centro 5",dist:"Mexico 7",dm:"xrosales",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Cordoba",dm:"bespinoza",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Cordoba 2",dm:"mrivera",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Puebla 1",dm:"elopezm",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Puebla 2",dm:"yjeronimo",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Puebla 3",dm:"eramirezh",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 1",dist:"Puebla 4",dm:"fsosar",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Veracruz",dm:"rgonzalez",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Veracruz 2",dm:"mtemix",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Veracruz 4",dm:"kguzmano",brand:"CAE"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Vera Norte",dm:"rvillegas",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Vera Norte 2",dm:"jgarciac",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Xalapa",dm:"egutierrez",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Golfo 2",dist:"Xalapa 2",dm:"ghernandezj",brand:"BS (Empeño Facil)"},
+  {div:"Division 1",reg:"Toluca",dist:"Centro MP",dm:"ursula.valle",brand:"MP"},
+  {div:"Division 1",reg:"Toluca",dist:"Toluca 1",dm:"jhernandezt",brand:"CAE"},
+  {div:"Division 1",reg:"Toluca",dist:"Toluca 2",dm:"gmartinez",brand:"CAE"},
+  {div:"Division 1",reg:"Toluca",dist:"Toluca 3",dm:"jonathan_ventura",brand:"CAE"},
+  {div:"Division 1",reg:"Toluca",dist:"Toluca 4",dm:"dlopezs",brand:"CAE"},
+  {div:"Division 2",reg:"Bajio",dist:"Guanajuato",dm:"rrodriguez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Bajio",dist:"Guanajuato 2",dm:"nlopez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Bajio",dist:"Leon",dm:"lestradam",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Bajio",dist:"Queretaro",dm:"jurbano",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Bajio",dist:"Queretaro 2",dm:"egarcia",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Centro 6",dist:"Cuautitlan",dm:"ealvarez",brand:"CAE"},
+  {div:"Division 2",reg:"Centro 6",dist:"Autos MP",dm:"isabel.de",brand:"MP"},
+  {div:"Division 2",reg:"Centro 6",dist:"Ecatepec",dm:"hugo_sanchez",brand:"CAE"},
+  {div:"Division 2",reg:"Centro 6",dist:"Oriente",dm:"arojo",brand:"CAE"},
+  {div:"Division 2",reg:"Centro 6",dist:"Val Mexico 1",dm:"rmartineza",brand:"CAE"},
+  {div:"Division 2",reg:"Centro 6",dist:"Val Mexico 2",dm:"rmejia",brand:"CAE"},
+  {div:"Division 2",reg:"Centro 6",dist:"Zumpango",dm:"plopez",brand:"CAE"},
+  {div:"Division 2",reg:"Culiacan",dist:"Culiacan 1",dm:"mgalindo",brand:"BZR (Bazareño)"},
+  {div:"Division 2",reg:"Culiacan",dist:"Culiacan 2",dm:"jgastelum",brand:"BZR (Bazareño)"},
+  {div:"Division 2",reg:"Culiacan",dist:"Culiacan 3",dm:"osalazar",brand:"BZR (Bazareño)"},
+  {div:"Division 2",reg:"Norte",dist:"Noreste MP",dm:"cesar.moctezuma",brand:"MP"},
+  {div:"Division 2",reg:"Norte",dist:"Saltillo",dm:"jrodriguez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Norte",dist:"Frontera",dm:"cuvina",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Norte",dist:"Monterrey",dm:"jmoralesa",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Norte",dist:"Monterrey 2",dm:"fcortez",brand:"CAE"},
+  {div:"Division 2",reg:"Norte",dist:"Tamaulipas",dm:"emarquez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Norte",dist:"Torreon 2",dm:"jquintero",brand:"CAE"},
+  {div:"Division 2",reg:"Occidente",dist:"Aguascalientes",dm:"rmartinezg",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Occidente",dist:"Guadalajara 1",dm:"julio.angeles",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Occidente",dist:"Guadalajara 2",dm:"jregalado",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Occidente",dist:"Guadalajara 3",dm:"daniel_alejandre",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Occidente",dist:"Michoacan",dm:"clopezt",brand:"MNA"},
+  {div:"Division 2",reg:"Occidente",dist:"Morelia",dm:"fhernandez",brand:"MP"},
+  {div:"Division 2",reg:"Region NL",dist:"Nuevo Leon 1",dm:"cindy.salazar",brand:"PS (SAFE)"},
+  {div:"Division 2",reg:"Region NL",dist:"Nuevo Leon 2",dm:"jaime.cruz",brand:"PS (SAFE)"},
+  {div:"Division 2",reg:"Sureste 1",dist:"Campeche 1",dm:"jfuentes",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 1",dist:"Campeche 2",dm:"yperez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 1",dist:"QRoo 1",dm:"pvelazquezs",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 1",dist:"QRoo 2",dm:"ngonzalezs",brand:"CAE"},
+  {div:"Division 2",reg:"Sureste 1",dist:"QRoo 3",dm:"lramos",brand:"CAE"},
+  {div:"Division 2",reg:"Sureste 1",dist:"Yucatan",dm:"rgarcia",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 2",dist:"Chiapas 1",dm:"jcardozo",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 2",dist:"Chiapas 2",dm:"fabiola.galvez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 2",dist:"ISTMO",dm:"dramosr",brand:"MP"},
+  {div:"Division 2",reg:"Sureste 2",dist:"Tapachula",dm:"jsuriano",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Tabasco 1",dm:"kalamilla",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Tabasco 2",dm:"lmendez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Tabasco 3",dm:"lcorrea",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Vera Sur 1",dm:"ggonzalez",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Vera Sur 2",dm:"atirado",brand:"BS (Empeño Facil)"},
+  {div:"Division 2",reg:"Sureste 3",dist:"Vera Sur 3",dm:"etrujillo",brand:"BS (Empeño Facil)"},
+];
+
+// ── FORMATTERS ────────────────────────────────────────────────────────────
+const f$=(v,d=1)=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v),s=v<0?'-':'';return a>=1e9?s+'$'+(a/1e9).toFixed(d)+'B':a>=1e6?s+'$'+(a/1e6).toFixed(d)+'M':a>=1e3?s+'$'+(a/1e3).toFixed(0)+'K':s+'$'+Math.round(a).toLocaleString();};
+const fn=v=>v==null?'—':Math.round(v).toLocaleString();
+const fp=v=>v==null?'—':(v>=0?'+':'')+((v||0)*100).toFixed(1)+'%';
+const pct=v=>v==null?'—':(v>=0?'+':'')+(v||0).toFixed(1)+'%';
+const pc=(v)=>v==null?'':(v>=0?'pup':'pdn');
+const bdg=(v)=>{if(v==null)return'';const g=v>=0;return`<span class="kc-badge ${g?'up':'dn'}">${g?'▲':'▼'} ${fp(v)}</span>`;};
+
+// ── FILTERS ───────────────────────────────────────────────────────────────
+function unique(a){return[...new Set(a)].filter(Boolean).sort();}
+function setOpts(id,vals,cur,labelFn){const s=document.getElementById(id);s.innerHTML=`<option value="">All</option>`+vals.map(v=>`<option value="${v}"${v==cur?' selected':''}>${labelFn?labelFn(v):v}</option>`).join('');}
+
+// ── COUNTRY SWITCH ────────────────────────────────────────────────────────
+function activeHier(){return document.getElementById('fCountry').value==='GUATEMALA'?GT_HIER:HIER;}
+function activeMonthly(){return document.getElementById('fCountry').value==='GUATEMALA'?GT_MONTHLY:MONTHLY;}
+function switchCountry(){
+  // Reset all date + hierarchy filters on country change
+  ['fDiv','fReg','fDist','fDM','fBrand','fYear','fQ','fMonth'].forEach(id=>document.getElementById(id).value='');
+  // Repopulate Division filter options
+  const hier=activeHier();
+  const divs=unique(hier.map(x=>x.div));
+  const fDiv=document.getElementById('fDiv');
+  fDiv.innerHTML=`<option value="">All Divisions</option>`+divs.map(v=>`<option>${v}</option>`).join('');
+  // Repopulate Year filter (must run before cascade -> cascadeDate)
+  initDateFilters();
+}
+
+// ── HIERARCHY CASCADE ──────────────────────────────────────────────────────
+function cascade(){
+  const hier=activeHier();
+  const d=document.getElementById('fDiv').value;
+  const r=document.getElementById('fReg').value;
+  setOpts('fReg',unique(hier.filter(x=>!d||x.div===d).map(x=>x.reg)),r);
+  const r2=document.getElementById('fReg').value;
+  setOpts('fDist',unique(hier.filter(x=>(!d||x.div===d)&&(!r2||x.reg===r2)).map(x=>x.dist)),document.getElementById('fDist').value);
+  const di=document.getElementById('fDist').value;
+  setOpts('fDM',unique(hier.filter(x=>(!d||x.div===d)&&(!r2||x.reg===r2)&&(!di||x.dist===di)).map(x=>x.dm)),document.getElementById('fDM').value);
+  setOpts('fBrand',unique(hier.filter(x=>!d||x.div===d).map(x=>x.brand)),document.getElementById('fBrand').value);
+  cascadeDate();
+}
+
+// ── DATE CASCADE: Year → Quarter → Month ──────────────────────────────────
+function initDateFilters(){
+  const years=unique(activeMonthly().map(r=>String(r.yr)));
+  setOpts('fYear',years,document.getElementById('fYear').value,v=>v);
+  cascadeDate();
+}
+function cascadeDate(){
+  const yr=document.getElementById('fYear').value;
+  const q=document.getElementById('fQ').value;
+
+  // Quarters available for selected year
+  const mon=activeMonthly();
+  const qOpts=unique(mon.filter(r=>!yr||String(r.yr)===yr).map(r=>r.q));
+  setOpts('fQ',qOpts,q,v=>{
+    const rows=mon.filter(r=>r.q===v);
+    if(!rows.length)return v;
+    const yrs=[...new Set(rows.map(r=>r.yr))];
+    return `${v} FY${yrs[0]}${yrs.length>1?'–'+yrs[yrs.length-1]:''}`;
+  });
+  const q2=document.getElementById('fQ').value;
+
+  // Months available for selected year+quarter
+  const mOpts=mon.filter(r=>(!yr||String(r.yr)===yr)&&(!q2||r.q===q2));
+  const mVals=mOpts.map(r=>String(r.m)+'-'+r.yr); // unique key: "10-2025"
+  const curM=document.getElementById('fMonth').value;
+  const sel=document.getElementById('fMonth');
+  sel.innerHTML=`<option value="">All Months</option>`+mOpts.map(r=>{
+    const key=String(r.m)+'-'+r.yr;
+    return`<option value="${key}"${key===curM?' selected':''}>${r.mn} ${r.yr}</option>`;
+  }).join('');
+
+  render();
+}
+
+function resetFilters(){
+  ['fDiv','fReg','fDist','fDM','fBrand','fYear','fQ','fMonth'].forEach(id=>document.getElementById(id).value='');
+  switchCountry();
+}
+function showTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function getRows(){
+  const d=document.getElementById('fDiv').value;
+  const yr=document.getElementById('fYear').value;
+  const q=document.getElementById('fQ').value;
+  const mo=document.getElementById('fMonth').value; // "m-yr" e.g. "10-2025"
+  const isGT=document.getElementById('fCountry').value==='GUATEMALA';
+  let rows=activeMonthly().filter(r=>{
+    if(yr&&String(r.yr)!==yr)return false;
+    if(q&&r.q!==q)return false;
+    if(mo&&(String(r.m)+'-'+r.yr)!==mo)return false;
+    return true;
+  });
+  if(isGT)return rows; // Guatemala has no division split data
+  if(d){
+    rows=rows.map(r=>{
+      const dRow=DIV_DATA.find(x=>x.m===r.m&&x.yr===r.yr&&x.div===d);
+      if(!dRow)return r;
+      const ratio=r.plo>0?dRow.plo/r.plo:0;
+      const nRatio=r.nlmN>0?dRow.nlmN/r.nlmN:0;
+      return{...r,plo:dRow.plo,psc:dRow.psc,sales:dRow.sales,netRev:dRow.netRev,nlmN:dRow.nlmN,delta:dRow.delta,stores:dRow.stores,
+        nlmD:Math.round(r.nlmD*nRatio),cogs:Math.round(r.cogs*ratio),sgp:Math.round(r.sgp*ratio),pbo:Math.round(r.pbo*ratio),
+        ploPlan:Math.round(r.ploPlan*ratio),pscPlan:r.pscPlan?Math.round(r.pscPlan*ratio):null,
+        salesPlan:r.salesPlan?Math.round(r.salesPlan*ratio):null,netRevPlan:r.netRevPlan?Math.round(r.netRevPlan*ratio):null};
+    });
+  }
+  return rows;
+}
+
+function aggAll(rows){
+  if(!rows.length)return null;
+  const s=k=>rows.reduce((a,r)=>a+(r[k]||0),0);
+  const last=rows[rows.length-1];
+  return{plo:last.plo,ploPlan:last.ploPlan,psc:s('psc'),
+    pscPlan:rows.filter(r=>r.pscPlan).reduce((a,r)=>a+(r.pscPlan||0),0)||null,
+    sales:s('sales'),salesPlan:rows.filter(r=>r.salesPlan).reduce((a,r)=>a+(r.salesPlan||0),0)||null,
+    cogs:s('cogs'),sgp:s('sgp'),netRev:s('netRev'),
+    netRevPlan:rows.filter(r=>r.netRevPlan).reduce((a,r)=>a+(r.netRevPlan||0),0)||null,
+    nlmN:s('nlmN'),nlmD:s('nlmD'),stores:last.stores,delta:s('delta'),
+    deltaPlan:rows.filter(r=>r.deltaPlan).reduce((a,r)=>a+(r.deltaPlan||0),0)||null,pbo:last.pbo};
+}
+
+function render(){
+  const rows=getRows();
+  const a=aggAll(rows);
+  if(!a)return;
+  renderOverview(a,rows);
+  renderMatrix(rows);
+  renderTrends(rows);
+  renderDivision();
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────
+function renderOverview(a,rows){
+  const ploVsP=a.ploPlan?a.plo/a.ploPlan-1:null;
+  const pscVsP=a.pscPlan?a.psc/a.pscPlan-1:null;
+  const sVsP=a.salesPlan?a.sales/a.salesPlan-1:null;
+  const nVsP=a.netRevPlan?a.netRev/a.netRevPlan-1:null;
+
+  const qCard=(q,cls,col)=>{
+    const r=aggAll(rows.filter(x=>x.q===q));
+    if(!r)return'';
+    return`<div class="q-card ${cls}">
+      <div class="q-label" style="color:${col}">${q} FY2026 &nbsp;${q==='Q1'?'Oct–Dec 2025':'Jan–Mar 2026'}</div>
+      <div class="q-val">${f$(r.netRev,2)}</div>
+      <div class="q-sub">Net Revenue</div>
+      <div class="q-meta">PLO ${f$(r.plo,2)} &nbsp;·&nbsp; PSC ${f$(r.psc,1)} &nbsp;·&nbsp; NLM# ${fn(r.nlmN)}</div>
+    </div>`;
+  };
+  const ytd=aggAll(rows);
+
+  document.getElementById('overview').innerHTML=`
+  <div class="q-strip">
+    ${qCard('Q1','q1-accent','#533AB7')}
+    ${qCard('Q2','q2-accent','#185FA5')}
+    <div class="q-card ytd-accent">
+      <div class="q-label" style="color:#1D9E75">YTD FY2026</div>
+      <div class="q-val">${f$(ytd?ytd.netRev:0,2)}</div>
+      <div class="q-sub">Net Revenue</div>
+      <div class="q-meta">PLO ${f$(ytd?ytd.plo:0,2)} &nbsp;·&nbsp; PSC ${f$(ytd?ytd.psc:0,1)} &nbsp;·&nbsp; NLM# ${fn(ytd?ytd.nlmN:0)}</div>
+    </div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kc"><div class="kc-label">PLO</div><div class="kc-val">${f$(a.plo,2)}</div><div class="kc-sub">Plan: ${f$(a.ploPlan,2)}</div>${bdg(ploVsP)}</div>
+    <div class="kc"><div class="kc-label">PSC</div><div class="kc-val">${f$(a.psc,2)}</div><div class="kc-sub">Plan: ${a.pscPlan?f$(a.pscPlan,2):'—'}</div>${bdg(pscVsP)}</div>
+    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-val">${f$(a.netRev,2)}</div><div class="kc-sub">Plan: ${a.netRevPlan?f$(a.netRevPlan,2):'—'}</div>${bdg(nVsP)}</div>
+    <div class="kc"><div class="kc-label">Sales</div><div class="kc-val">${f$(a.sales,2)}</div><div class="kc-sub">Plan: ${a.salesPlan?f$(a.salesPlan,2):'—'}</div>${bdg(sVsP)}</div>
+    <div class="kc"><div class="kc-label">COGS</div><div class="kc-val">${f$(a.cogs,2)}</div><div class="kc-sub">SGP: ${f$(a.sgp,2)}</div></div>
+    <div class="kc"><div class="kc-label">Delta</div><div class="kc-val">${f$(a.delta,2)}</div><div class="kc-sub">Plan: ${a.deltaPlan?f$(a.deltaPlan,2):'—'}</div>${bdg(a.delta>=0?.01:-.01)}</div>
+    <div class="kc"><div class="kc-label">NLM #</div><div class="kc-val">${fn(a.nlmN)}</div><div class="kc-sub">New pawn count</div></div>
+    <div class="kc"><div class="kc-label">NLM $</div><div class="kc-val">${f$(a.nlmD,2)}</div><div class="kc-sub">New pawn value</div></div>
+    <div class="kc"><div class="kc-label">PBO</div><div class="kc-val">${f$(a.pbo,2)}</div><div class="kc-sub">Pawn balance outstanding</div></div>
+    <div class="kc"><div class="kc-label"># Stores</div><div class="kc-val">${fn(a.stores)}</div><div class="kc-sub">Active stores</div></div>
+    <div class="kc"><div class="kc-label">PLO / Store</div><div class="kc-val">${f$(a.plo/a.stores,2)}</div><div class="kc-sub">Avg per store</div></div>
+    <div class="kc"><div class="kc-label">Avg Loan $</div><div class="kc-val">${f$(a.nlmD/a.nlmN,2)}</div><div class="kc-sub">NLM $ ÷ NLM #</div></div>
+  </div>
+  <div class="chart-row">
+    ${barChart('PLO by Month',rows,'plo','#533AB7','#185FA5',false)}
+    ${barChart('Net Revenue by Month',rows,'netRev','#0e6e3f','#1D9E75',false)}
+  </div>
+  <div class="chart-row">
+    ${barChart('PSC by Month',rows,'psc','#533AB7','#7B5EA7',false)}
+    ${barChart('NLM # by Month',rows,'nlmN','#854F0B','#BA7517',true)}
+  </div>`;
+}
+
+function barChart(title,rows,key,c1,c2,isN){
+  const mx=Math.max(...rows.map(r=>Math.abs(r[key]||0)));
+  let lastQ='';
+  const bars=rows.map(r=>{
+    const v=r[key]||0,w=mx>0?Math.round(Math.abs(v)/mx*100):0;
+    const c=r.q==='Q1'?c1:c2;
+    let qDiv='';
+    if(r.q!==lastQ){qDiv=`<div class="q-divider">${r.q} FY2026</div>`;lastQ=r.q;}
+    return`${qDiv}<div class="bar-row">
+      <div class="bar-lbl">${r.mn.slice(0,3)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${c}">${w>18?(isN?fn(v):f$(v,1)):''}</div></div>
+      <div class="bar-val">${isN?fn(v):f$(v,1)}</div>
+    </div>`;
+  }).join('');
+  return`<div class="chart-box">
+    <div class="chart-title">
+      ${title}
+      <span style="font-size:9px;font-weight:500;color:var(--faint);display:flex;align-items:center;gap:4px">
+        <span class="legend-dot" style="background:${c1}"></span>Q1
+        <span class="legend-dot" style="background:${c2};margin-left:3px"></span>Q2
+      </span>
+    </div>
+    ${bars}
+  </div>`;
+}
+
+// ── KPI MATRIX ────────────────────────────────────────────────────────────
+function renderMatrix(rows){
+  const KPIS=[
+    {grp:'PAWN & LOAN',kpi:'PLO',              k:'plo',        f:f$, tot:'last'},
+    {grp:'',           kpi:'PLO Plan',          k:'ploPlan',    f:f$, tot:'last',dim:true},
+    {grp:'',           kpi:'PLO vs Plan %',     k:'ploVsP',     f:fp, tot:'—',  pct:true},
+    {grp:'',           kpi:'PLO vs LY %',       k:'ploVsLY',    f:v=>pct(v), tot:'—', pct:true, raw:true},
+    {grp:'',           kpi:'PSC',               k:'psc',        f:f$, tot:'sum'},
+    {grp:'',           kpi:'PSC Plan',          k:'pscPlan',    f:f$, tot:'sum', dim:true},
+    {grp:'',           kpi:'PSC vs Plan %',     k:'pscVsP',     f:fp, tot:'—',  pct:true},
+    {grp:'',           kpi:'PSC vs LY %',       k:'pscVsLY',    f:v=>pct(v), tot:'—', pct:true, raw:true},
+    {grp:'',           kpi:'PBO',               k:'pbo',        f:f$, tot:'last'},
+    {grp:'',           kpi:'NLM #',             k:'nlmN',       f:fn, tot:'sum'},
+    {grp:'',           kpi:'NLM $',             k:'nlmD',       f:f$, tot:'sum'},
+    {grp:'',           kpi:'# Stores',          k:'stores',     f:fn, tot:'last'},
+    {grp:'SALES & MARGIN',kpi:'Sales',          k:'sales',      f:f$, tot:'sum'},
+    {grp:'',           kpi:'Sales Plan',        k:'salesPlan',  f:f$, tot:'sum', dim:true},
+    {grp:'',           kpi:'Sales vs Plan %',   k:'salesVsP',   f:fp, tot:'—',  pct:true},
+    {grp:'',           kpi:'Sales vs LY %',     k:'salesVsLY',  f:v=>pct(v), tot:'—', pct:true, raw:true},
+    {grp:'',           kpi:'COGS',              k:'cogs',       f:f$, tot:'sum'},
+    {grp:'',           kpi:'SGP',               k:'sgp',        f:f$, tot:'sum'},
+    {grp:'',           kpi:'Net Revenue',       k:'netRev',     f:f$, tot:'sum'},
+    {grp:'',           kpi:'Net Rev Plan',      k:'netRevPlan', f:f$, tot:'sum', dim:true},
+    {grp:'',           kpi:'Net Rev vs Plan %', k:'netRevVsP',  f:fp, tot:'—',  pct:true},
+    {grp:'DELTA',      kpi:'Delta',             k:'delta',      f:f$, tot:'sum'},
+    {grp:'',           kpi:'Delta Plan',        k:'deltaPlan',  f:f$, tot:'sum', dim:true},
+  ];
+
+  const q1rows=rows.filter(r=>r.q==='Q1'),q2rows=rows.filter(r=>r.q==='Q2');
+  const hasQ1=q1rows.length>0,hasQ2=q2rows.length>0,hasBoth=hasQ1&&hasQ2;
+
+  let colH='<th class="left" style="min-width:160px">KPI</th>';
+  let lastQ='';
+  rows.forEach(r=>{
+    const border=r.q!==lastQ?`border-left:2px solid ${r.q==='Q1'?'#c9bef0':'#b8d9f5'}`:'';
+    colH+=`<th class="${r.q==='Q1'?'q1h':'q2h'}" style="${border}">${r.mn.slice(0,3)}</th>`;
+    lastQ=r.q;
+  });
+  if(hasBoth) colH+=`<th class="q1h">Q1 Total</th>`;
+  if(hasQ2)   colH+=`<th class="q2h">Q2 Total</th>`;
+  colH+=`<th class="toth">YTD</th>`;
+
+  const calc=(rws,k,tot)=>{
+    if(!rws.length||tot==='—')return null;
+    const vals=rws.map(r=>r[k]).filter(v=>v!=null);
+    if(!vals.length)return null;
+    if(tot==='sum')return vals.reduce((a,b)=>a+b,0);
+    if(tot==='last')return rws[rws.length-1][k];
+    return null;
+  };
+
+  let tbody='';let lastG='';
+  KPIS.forEach(k=>{
+    if(k.grp&&k.grp!==lastG){
+      const span=rows.length+(hasBoth?1:0)+(hasQ2?1:0)+2;
+      tbody+=`<tr><td class="grp" colspan="${span}">${k.grp}</td></tr>`;
+      lastG=k.grp;
+    }
+    let lastQ2='';
+    const cells=rows.map(r=>{
+      const v=r[k.k];const disp=v==null?'—':k.f(k.raw?v/100:v);
+      const cls=k.pct?pc(k.raw?v/100:v):'';
+      const border=r.q!==lastQ2&&rows.indexOf(r)>0?`style="border-left:2px solid ${r.q==='Q1'?'#ede8fc':'#ddeef9'}"`:' ';
+      lastQ2=r.q;
+      return`<td class="${r.q==='Q1'?'q1c':''} ${k.dim?'plan':''} ${cls}" ${border}>${disp}</td>`;
+    }).join('');
+
+    const q1v=hasBoth?calc(q1rows,k.k,k.tot):null;
+    const q2v=hasQ2?calc(q2rows,k.k,k.tot):null;
+    const ytdv=calc(rows,k.k,k.tot);
+    const fmt=v=>v==null||k.tot==='—'?'—':k.f(k.raw?v/100:v);
+    const tc=v=>k.pct&&v!=null?pc(k.raw?v/100:v):'';
+
+    tbody+=`<tr><td class="kpi-name ${k.dim?'plan':''}">${k.kpi}</td>${cells}`;
+    if(hasBoth) tbody+=`<td class="q1c totc ${tc(q1v)}">${fmt(q1v)}</td>`;
+    if(hasQ2)   tbody+=`<td class="totc ${tc(q2v)}">${fmt(q2v)}</td>`;
+    tbody+=`<td class="totc ${tc(ytdv)}">${fmt(ytdv)}</td></tr>`;
+  });
+
+  document.getElementById('matrix').innerHTML=`
+    <div class="sec-title">KPI Matrix — FY2026 · Mexico · Autos · ${document.getElementById('fDiv').value||'All Divisions'}</div>
+    <div class="matrix-wrap"><table><thead><tr>${colH}</tr></thead><tbody>${tbody}</tbody></table></div>`;
+}
+
+// ── TRENDS ────────────────────────────────────────────────────────────────
+function renderTrends(rows){
+  const metrics=[
+    {k:'plo',   l:'PLO',        c1:'#533AB7',c2:'#185FA5'},
+    {k:'psc',   l:'PSC',        c1:'#7B5EA7',c2:'#4A90D9'},
+    {k:'sales', l:'Sales',      c1:'#0e6e3f',c2:'#1D9E75'},
+    {k:'cogs',  l:'COGS',       c1:'#c44820',c2:'#D85A30'},
+    {k:'sgp',   l:'SGP',        c1:'#3a6610',c2:'#639922'},
+    {k:'netRev',l:'Net Revenue',c1:'#0a4d2e',c2:'#0F6E56'},
+    {k:'nlmN',  l:'NLM #',      c1:'#6b3a0a',c2:'#BA7517'},
+    {k:'nlmD',  l:'NLM $',      c1:'#5c2e06',c2:'#854F0B'},
+    {k:'delta', l:'Delta',      c1:'#2a2070',c2:'#3C3489'},
+  ];
+  const cards=metrics.map(m=>{
+    const vals=rows.map(r=>r[m.k]||0);
+    const mx=Math.max(...vals.map(Math.abs));
+    const latest=vals[vals.length-1];
+    const prev=vals.length>1?vals[vals.length-2]:null;
+    const chg=prev&&prev!==0?(latest-prev)/Math.abs(prev):null;
+    const bars=rows.map(r=>{
+      const v=r[m.k]||0;
+      const h=mx>0?Math.max(3,Math.round(Math.abs(v)/mx*30)):3;
+      const c=r.q==='Q1'?m.c1:m.c2;
+      return`<div class="spark-b" style="height:${h}px;background:${v<0?'#E24B4A':c}"></div>`;
+    }).join('');
+    return`<div class="spark-card">
+      <div class="spark-lbl">${m.l}</div>
+      <div class="spark-val">${m.k==='nlmN'?fn(latest):f$(latest,1)}</div>
+      ${chg!=null?`<div class="spark-chg ${chg>=0?'pup':'pdn'}">${chg>=0?'▲':'▼'} ${Math.abs(chg*100).toFixed(1)}% vs prev month</div>`:''}
+      <div class="spark-bars">${bars}</div>
+      <div class="spark-mo">${rows.map(r=>`<span>${r.mn.slice(0,3)}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('trends').innerHTML=`
+    <div class="sec-title" style="margin-bottom:12px">
+      Month-over-month trends
+      <span style="font-size:9px;font-weight:500;color:var(--faint);margin-left:8px">
+        ■ Q1 (darker) &nbsp; ■ Q2 (lighter)
+      </span>
+    </div>
+    <div class="spark-grid">${cards}</div>`;
+}
+
+// ── BY DIVISION ───────────────────────────────────────────────────────────
+function renderDivision(){
+  if(document.getElementById('fCountry').value==='GUATEMALA'){
+    document.getElementById('division').innerHTML=`<div class="empty-state">Division breakdown is not available for Guatemala.</div>`;
+    return;
+  }
+  const yr=document.getElementById('fYear').value;
+  const q=document.getElementById('fQ').value;
+  const mo=document.getElementById('fMonth').value;
+  const divRows=DIV_DATA.filter(r=>{
+    if(yr&&String(r.yr)!==yr)return false;
+    if(q&&r.q!==q)return false;
+    if(mo&&(String(r.m)+'-'+r.yr)!==mo)return false;
+    return true;
+  });
+  const aggD=div=>{
+    const r=divRows.filter(x=>x.div===div);
+    if(!r.length)return null;
+    const last=r[r.length-1];
+    return{plo:last.plo,psc:r.reduce((a,x)=>a+x.psc,0),sales:r.reduce((a,x)=>a+x.sales,0),
+      netRev:r.reduce((a,x)=>a+x.netRev,0),nlmN:r.reduce((a,x)=>a+x.nlmN,0),
+      delta:r.reduce((a,x)=>a+x.delta,0),stores:last.stores};
+  };
+  const a1=aggD('Division 1'),a2=aggD('Division 2');
+  const cards=['Division 1','Division 2'].map((d,i)=>{
+    const a=i===0?a1:a2;if(!a)return'';
+    const col=i===0?'#185FA5':'#533AB7';
+    return`<div class="div-card">
+      <div class="div-title" style="color:${col}">● ${d} &nbsp;·&nbsp; ${fn(a.stores)} stores</div>
+      <div class="div-row"><span>PLO</span><span>${f$(a.plo,2)}</span></div>
+      <div class="div-row"><span>PSC</span><span>${f$(a.psc,2)}</span></div>
+      <div class="div-row"><span>Sales</span><span>${f$(a.sales,2)}</span></div>
+      <div class="div-row"><span>Net Revenue</span><span>${f$(a.netRev,2)}</span></div>
+      <div class="div-row"><span>NLM #</span><span>${fn(a.nlmN)}</span></div>
+      <div class="div-row"><span>Delta</span><span class="${a.delta>=0?'pup':'pdn'}">${f$(a.delta,2)}</span></div>
+    </div>`;
+  }).join('');
+
+  const kpis=[{k:'plo',l:'PLO'},{k:'psc',l:'PSC'},{k:'sales',l:'Sales'},{k:'netRev',l:'Net Rev'},{k:'nlmN',l:'NLM #'}];
+  const compBars=kpis.map(({k,l})=>{
+    const v1=a1?a1[k]||0:0,v2=a2?a2[k]||0:0,t=v1+v2||1;
+    const p1=Math.round(v1/t*100),p2=100-p1;
+    const fmt=k==='nlmN'?fn:v=>f$(v,1);
+    return`<div style="margin-bottom:11px">
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${l}</div>
+      <div style="display:flex;height:18px;border-radius:5px;overflow:hidden;gap:2px">
+        <div style="width:${p1}%;background:#185FA5;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700">${p1>12?fmt(v1):''}</div>
+        <div style="width:${p2}%;background:#533AB7;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700">${p2>12?fmt(v2):''}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:10px;color:var(--muted)">
+        <span>Div 1: ${fmt(v1)}</span><span>Div 2: ${fmt(v2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('division').innerHTML=`
+    <div class="div-grid">${cards}</div>
+    <div class="chart-box" style="margin-bottom:14px">
+      <div class="chart-title">
+        Division split
+        <span style="font-size:9px;font-weight:500;color:var(--faint);display:flex;gap:5px;align-items:center">
+          <span class="legend-dot" style="background:#185FA5"></span>Div 1
+          <span class="legend-dot" style="background:#533AB7"></span>Div 2
+        </span>
+      </div>
+      ${compBars}
+    </div>
+    <div class="matrix-wrap"><table>
+      <thead><tr>
+        <th class="left">Month</th><th class="left">Q</th><th class="left">Division</th>
+        <th>PLO</th><th>PSC</th><th>Sales</th><th>Net Rev</th><th>NLM #</th><th>Delta</th><th>Stores</th>
+      </tr></thead>
+      <tbody>${divRows.map(r=>`<tr>
+        <td style="text-align:left;font-family:'DM Sans',sans-serif">${r.mn}</td>
+        <td style="text-align:left;font-size:10px;font-weight:700;color:${r.q==='Q1'?'#533AB7':'#185FA5'};font-family:'DM Sans',sans-serif">${r.q}</td>
+        <td style="text-align:left;color:${r.div==='Division 1'?'#185FA5':'#533AB7'};font-weight:600;font-family:'DM Sans',sans-serif">${r.div}</td>
+        <td>${f$(r.plo,1)}</td><td>${f$(r.psc,1)}</td><td>${f$(r.sales,1)}</td><td>${f$(r.netRev,1)}</td>
+        <td>${fn(r.nlmN)}</td><td class="${r.delta>=0?'pup':'pdn'}">${f$(r.delta,1)}</td><td>${fn(r.stores)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+// ── LIVE DATA WIRING ──────────────────────────────────────────────────────
+// Fetches live data from /api/pbi-query (Azure Function).
+// Falls back to embedded cached data silently if API is unavailable.
+
+const DATASET_ID = '4da96e14-b43c-470d-b4d9-4b8dff4b0ad2';
+
+function buildMexicoDax() {
+  return `
+    EVALUATE
+    CALCULATETABLE(
+      ADDCOLUMNS(
+        SUMMARIZE('CY_Operational Dataflow',
+          'Date'[CY Month Year],
+          'Date'[CURRENT_YEAR_DATE]
+        ),
+        "plo",    [PLO$],
+        "psc",    [PSC],
+        "sales",  [SPIF],
+        "cogs",   [SPIF] - [SGP],
+        "sgp",    [SGP],
+        "netRev", [PSC] + [SGP],
+        "nlmN",   [NLM#],
+        "nlmD",   [New Loan Amount],
+        "delta",  [PLO$] - [Avg_NLM],
+        "stores", 648
+      ),
+      'CY_Operational Dataflow'[Country] = "Mexico",
+      'BARD PRODUCT_HIERARCHY'[CATEGORY_LEVEL2] = "Transportation",
+      'BARD PRODUCT_HIERARCHY'[CATEGORY_LEVEL3] = "Land Vehicles",
+      'Date'[CURRENT_YEAR_DATE] >= DATE(2025,10,1),
+      'Date'[CURRENT_YEAR_DATE] <= DATE(2026,4,30)
+    )
+    ORDER BY 'Date'[CURRENT_YEAR_DATE]`;
+}
+
+function buildGuatemalaDax() {
+  return `
+    EVALUATE
+    CALCULATETABLE(
+      ADDCOLUMNS(
+        SUMMARIZE('CY_Operational Dataflow',
+          'Date'[CY Month Year],
+          'Date'[CURRENT_YEAR_DATE]
+        ),
+        "plo",    [PLO$],
+        "psc",    [PSC],
+        "nlmN",   [NLM#],
+        "nlmD",   [New Loan Amount],
+        "stores", 157
+      ),
+      'CY_Operational Dataflow'[Country] = "Guatemala",
+      'BARD PRODUCT_HIERARCHY'[CATEGORY_LEVEL2] = "Transportation",
+      'BARD PRODUCT_HIERARCHY'[CATEGORY_LEVEL3] = "Land Vehicles",
+      'Date'[CURRENT_YEAR_DATE] >= DATE(2025,10,1),
+      'Date'[CURRENT_YEAR_DATE] <= DATE(2026,4,30)
+    )
+    ORDER BY 'Date'[CURRENT_YEAR_DATE]`;
+}
+
+const MONTH_MAP = {
+  'Oct_2025':  {m:10,yr:2025,mn:'October',  q:'Q1'},
+  'Nov_2025':  {m:11,yr:2025,mn:'November', q:'Q1'},
+  'Dec_2025':  {m:12,yr:2025,mn:'December', q:'Q1'},
+  'Jan_2026':  {m:1, yr:2026,mn:'January',  q:'Q2'},
+  'Feb_2026':  {m:2, yr:2026,mn:'February', q:'Q2'},
+  'Mar_2026':  {m:3, yr:2026,mn:'March',    q:'Q2'},
+  'Apr_2026':  {m:4, yr:2026,mn:'April',    q:'Q3'},
+};
+
+function mapLiveRowMexico(r) {
+  const key = r['Date[CY Month Year]'];
+  const meta = MONTH_MAP[key];
+  if (!meta) return null;
+  return {
+    ...meta,
+    plo:      r['[plo]']    || 0,
+    ploPlan:  null,
+    ploVsP:   null,
+    ploVsLY:  null,
+    psc:      r['[psc]']    || 0,
+    pscPlan:  null,
+    pscVsP:   null,
+    pscVsLY:  null,
+    sales:    r['[sales]']  || 0,
+    salesPlan:null,
+    salesVsP: null,
+    salesVsLY:null,
+    cogs:     r['[cogs]']   || 0,
+    sgp:      r['[sgp]']    || 0,
+    netRev:   r['[netRev]'] || 0,
+    netRevPlan:null,
+    netRevVsP:null,
+    nlmN:     r['[nlmN]']   || 0,
+    nlmD:     r['[nlmD]']   || 0,
+    stores:   r['[stores]'] || 648,
+    delta:    r['[delta]']  || 0,
+    deltaPlan:null,
+    pbo:      r['[plo]']    || 0,
+  };
+}
+
+function mapLiveRowGuatemala(r) {
+  const key = r['Date[CY Month Year]'];
+  const meta = MONTH_MAP[key];
+  if (!meta) return null;
+  return {
+    ...meta,
+    plo:      r['[plo]']    || 0,
+    ploPlan:  null, ploVsP: null, ploVsLY: null,
+    psc:      r['[psc]']    || null,
+    pscPlan:  null, pscVsP: null, pscVsLY: null,
+    sales:    null, salesPlan: null, salesVsP: null, salesVsLY: null,
+    cogs:     null, sgp: null,
+    netRev:   null, netRevPlan: null, netRevVsP: null,
+    nlmN:     r['[nlmN]']   || null,
+    nlmD:     r['[nlmD]']   || null,
+    stores:   r['[stores]'] || 157,
+    delta:    null, deltaPlan: null,
+    pbo:      r['[plo]']    || 0,
+  };
+}
+
+let usingLiveData = false;
+const liveCache   = {};
+
+async function fetchLive(country) {
+  if (liveCache[country]) return liveCache[country];
+  const dax = country === 'GUATEMALA' ? buildGuatemalaDax() : buildMexicoDax();
+  const resp = await fetch('/api/pbi-query', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ daxQuery: dax })
+  });
+  if (!resp.ok) throw new Error(`API ${resp.status}`);
+  const rows = await resp.json();
+  const mapped = rows
+    .map(country === 'GUATEMALA' ? mapLiveRowGuatemala : mapLiveRowMexico)
+    .filter(Boolean);
+  liveCache[country] = mapped;
+  return mapped;
+}
+
+// Override switchCountry to refresh live data on country change
+const _switchCountry = switchCountry;
+window.switchCountry = async function() {
+  _switchCountry();
+  if (!usingLiveData) return;
+  const country = document.getElementById('fCountry').value;
+  try {
+    const live = await fetchLive(country);
+    if (country === 'GUATEMALA') {
+      GT_MONTHLY.splice(0, GT_MONTHLY.length, ...live);
+    } else {
+      MONTHLY.splice(0, MONTHLY.length, ...live);
+    }
+    render();
+  } catch(e) {
+    console.warn('Live refresh failed, using cached data', e);
+  }
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    // Try to fetch live Mexico data first (default country)
+    const liveMX = await fetchLive('MEXICO');
+    MONTHLY.splice(0, MONTHLY.length, ...liveMX);
+    usingLiveData = true;
+    console.info('✅ Live Power BI data loaded successfully');
+    // Prefetch Guatemala in background
+    fetchLive('GUATEMALA').then(liveGT => {
+      GT_MONTHLY.splice(0, GT_MONTHLY.length, ...liveGT);
+    }).catch(() => {});
+  } catch(e) {
+    console.warn('⚠️ Live data unavailable — using cached data. Reason:', e.message);
+    usingLiveData = false;
+  }
+  switchCountry();
+})();
+</script>
+</body>
+</html>
